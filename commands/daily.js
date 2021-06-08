@@ -11,7 +11,7 @@ module.exports.run = async (bot, message, args) => {
  
   let user = message.author;
   let amount = 0
-  let timeout = 86400000 ;
+  let timeout = 0 //86400000 ;
   if (message.member.roles.cache.some(role => role.name === 'frequent flyers')) {
     amount = 300
     } else amount = 200;
@@ -31,39 +31,48 @@ module.exports.run = async (bot, message, args) => {
     
   db.add(`money_${message.guild.id}_${user.id}`, amount)
   db.set(`daily_${message.guild.id}_${user.id}`, Date.now())
-
-  const { registerFont, createCanvas } = require('canvas')
-  registerFont('./font/COLLEGE.ttf', { family: 'COLLEGE' })
+ 
+/*   const { registerFont, createCanvas } = require('canvas')
+  registerFont('./font/COLLEGE.ttf', { family: 'COLLEGE' })  */
 
   const canvas = Canvas.createCanvas(500,200);  
   const ctx = canvas.getContext('2d');
-  const background = await Canvas.loadImage('https://cdn.discordapp.com/attachments/492703825287839754/821430424504893450/daily.png');
+  const background = await Canvas.loadImage('https://media.discordapp.net/attachments/492703825287839754/851934313674178580/daily2.png');
   ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
   
-
   
-  ctx.font = "28px College";
-  ctx.textAlign - "center";
-  ctx.fillStyle = '#ffffff';
-  ctx.fillText(`You've collected ${amount} \n credits! `, 10, 135);
-  
-  ctx.font = "16px College";
+  ctx.font = "27px College";
   ctx.textAlign - "center";
   ctx.fillStyle = '#000000';
   ctx.textAlign = "center";
-  ctx.fillText(user.username +"#" + message.author.discriminator, 124,30);
-
-
-
-
-  const avatar = await Canvas.loadImage(message.member.user.displayAvatarURL({ format: 'jpg' }));
-  ctx.drawImage(avatar, 9, 23, 55, 55);
+  ctx.fillText(user.username +"#" + message.author.discriminator, 390,30);
 
   
- 
+  ctx.font = "bold 35px College";
+  ctx.textAlign - "center";
+  ctx.fillStyle = '#000000';
+  ctx.fillText(`You collected \n ${amount} credits! `, 150, 115);
+
+  ctx.font = "17px College";
+  ctx.textAlign - "center";
+  ctx.fillStyle = '#000000';
+  ctx.fillText(`Boosts:`, 180, 14);
+
+  const avatar = await Canvas.loadImage(message.member.user.displayAvatarURL({ format: 'jpg' }));
+  ctx.drawImage(avatar, 0, 0, 65, 65);
+
   const attachment = new Discord.MessageAttachment(canvas.toBuffer(), 'daily.png');
 
-  message.channel.send(attachment);
+const daily = new Discord.MessageEmbed()
+  .setDescription(`${message.author}, you collected your daily reward! Check your balance using '!profile' or '!balance'`)
+  .setTitle(`${message.author.username} collected their daily!`)
+  .attachFiles(attachment)
+  .setImage(`attachment://daily.png`)
+  .setColor('#E400FA')
+  
+  
+
+  message.channel.send(daily);
 
   }
 };
