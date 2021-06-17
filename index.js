@@ -145,4 +145,4 @@ bot.on("ready", async () => {
 
 
 
-bot.login("ODE0NTczNTY0ODEyMDY2ODY3.YDf0vw.5-irY1EoWJ2d-enYv6AOGvCIZyY");
+bot.login("");
