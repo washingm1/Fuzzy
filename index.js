@@ -52,7 +52,7 @@ bot.on("ready", async () => {
 
  slash.command({
           guildOnly: true,
-          guildID: "646074330249429012",
+          guildID: "",
           data: {
               name: "ping",
               description: "Ping pong?",
