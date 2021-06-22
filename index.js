@@ -7,7 +7,7 @@ const db = require('quick.db');
 const Canvacord = require('canvacord');
 const client = new Discord.Client(); 
 const { Slash } = require('discord-slash-commands');
-const { profile } = require("console");
+const { profile, time } = require("console");
 const slash = new Slash(bot);
 
 require('discord-buttons')(bot)
@@ -52,7 +52,7 @@ bot.on("ready", async () => {
 
  slash.command({
           guildOnly: true,
-          guildID: "",
+          guildID: "646074330249429012",
           data: {
               name: "ping",
               description: "Ping pong?",
@@ -80,11 +80,34 @@ bot.on("ready", async () => {
         }
     })
 
-    
+    bot.counter = 0;
+bot.maxCount = 3;
+
+
 
   bot.on("message", async message => {
     if(message.author.bot) return;
-     if(message.channel.type === "dm"){
+
+ 
+  
+if(message.channel.id === '845488614753304596'){
+    const { content } = message
+    const eachLine = content.split('\n')
+    for (const line of eachLine){
+      if (line.includes(' ')){
+          const split = line.split(' ')
+          const emoji = split[0].trim()
+          message.react(emoji)
+      }
+    }
+  };
+
+
+//SCAVENGER HUNT CODE
+
+let guildID = '646074330249429012'
+
+  if(message.channel.type === "dm"){
         if(message.content === "2080"){
           let embed = new Discord.MessageEmbed()
           .setTitle('Good Job!')
@@ -95,25 +118,84 @@ bot.on("ready", async () => {
 
         //QnA description will have a phrase to send 'Send bot 'Unlock Fuzzy'
         }
-        if(message.content === "Unlock Channel"){
-
-        const channel = bot.channels.cache.get('732757852615344139');
-
-        
-        channel.updateOverwrite(message.author,{
-            VIEW_CHANNEL: true,
-          })
-        
-          for(let i = 1; i< 4; i++){
       
-        let scavWelcome = new Discord.MessageEmbed()
-          .setTitle('Good Work')
-          .setDescription(`Welcome ${message.author}, you placed number ${i}`)
-          channel.send(scavWelcome)
-        }
-      }
+const channel = bot.channels.cache.get('856587120789028885');
+const channel2 = bot.channels.cache.get('739954713818300456');
+
+          if (message.content === 'Unlock Channel') {
+        
+             channel.updateOverwrite(message.author,{
+                 VIEW_CHANNEL: true
+             })    
+           
+             let scavWelcome = new Discord.MessageEmbed()
+             .setTitle('Almost There!')
+             .setDescription(`Welcome ${message.author}! \n\nFor your final step, name this song\n\n **Send the title to ${bot.user}, please capitalize the first letter of the song name!**`)
+             .setThumbnail(message.author.displayAvatarURL({ dynamic: true }))
+             .setColor('RANDOM')
+          channel.send(scavWelcome);
+          channel.send(`${message.author}`);
+          }
+
+          if (message.content === 'December'){
+            
+            if (bot.counter === bot.maxCount){
+              bot.counter = 0
+              return message.author.send('**Good Try!**\n\n Maximum winners reached, almost had it!')
+            }
+            else bot.counter++;
+              let scavFinish = new Discord.MessageEmbed()
+              .setTitle('Congratulations!')
+              .setThumbnail(message.author.displayAvatarURL({ dynamic: true }))
+              .setDescription(`**Congrats ${message.author}! You have completed the Scavenger hunt, you placed number ${bot.counter}!**`)
+              .addField('Rewards', `For your reward, you now have a color customizeable role, and credits!`)
+              .addField('1st Place', '15,000 Credits')
+              .addField('2nd Place', '10,000 Credits')
+              .addField('3rd Place', '7,500 Credits')
+              .setColor('RANDOM')
+              message.author.send(scavFinish)
+             channel2.send(`${message.author} placed #${bot.counter}\n\n Author ID: ${message.author.id}`)
+          }
+
       
-    } 
+    } ;
+
+//END SCAVENGER HUNT CODE
+
+
+    {
+      {
+       xp(message)
+       if(message.author.bot) return;
+       var user = message.mentions.users.first() || message.author;
+      var level = db.fetch(`guild_${message.guild.id}_level_${user.id}`) || 0;
+      var currentxp = db.fetch(`guild_${message.guild.id}_xp_${user.id}`) || 0;
+      var xpNeeded = level * 500 + 500 
+
+   }
+  
+   
+   function xp(message){
+     if(message.author.bot) return
+     const randomNumber = Math.floor(Math.random() * 10) + 15;
+     const randomNumber2 = Math.floor(Math.random() * 5);
+     db.add(`guild_${message.guild.id}_xp_${message.author.id}`, randomNumber)
+     db.add(`guild_${message.guild.id}_xptotal_${message.author.id}`, randomNumber)
+
+     db.add(`money_${message.guild.id}_${message.author.id}`, randomNumber2)
+
+     var level = db.get(`guild_${message.guild.id}_level_${message.author.id}`) || 1
+     var xp = db.get(`guild_${message.guild.id}_xp_${message.author.id}`)
+     var xpNeeded = level * 500;
+     if(xpNeeded < xp){
+       var newLevel = db.add(`guild_${message.guild.id}_level_${message.author.id}`, 1)
+       db.subtract(`guild_${message.guild.id}_xp_${message.author.id}`, xpNeeded)
+       message.channel.send(`${message.author}, you are now level ${newLevel}!`)
+     }
+   } 
+ }
+
+
     let prefix = botconfig.prefix
     let messageArray = message.content.split(" ");
     let args = message.content.slice(prefix.length).trim().split(/ +/g);
@@ -144,5 +226,5 @@ bot.on("ready", async () => {
 
 
 
-
 bot.login("");
+
