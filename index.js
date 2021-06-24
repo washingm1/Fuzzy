@@ -8,7 +8,10 @@ const Canvacord = require('canvacord');
 const client = new Discord.Client(); 
 const { Slash } = require('discord-slash-commands');
 const { profile, time } = require("console");
+const canvacord = require("canvacord");
 const slash = new Slash(bot);
+const moment = require ('moment')
+const Canvas = require('canvas');
 
 require('discord-buttons')(bot)
 
@@ -62,26 +65,88 @@ bot.on("ready", async () => {
           }
       })
  
-      const embed = new Discord.MessageEmbed()
-      .setTitle('This is a test')
-      .setDescription('Test')
+      let embed = new Discord.MessageEmbed()
+      .setTitle("Fuzzybrain Bot Help [Prefix !]")
+      .addField("Economy Commands", "**Work:** Get a random amount of credits for working! Cooldown every 30 minutes \n **rob:** Steal a random amount of credits from another user! \n **pay:** Give another user a specified amount of credits! \n\n **balance:** Check the amount of credits and tokens you have \n\n **top:** view the users with the most points in the server \n\n **profile:** view your personal stats \n\n **withdraw:** Take out a specified amount of credits from the bank \n\n **deposit:** Deposit a specified amount of credits in the bank \n\n **daily:** Collect credits on a daily basis! \n\n **buy:** Buy a role from the shop \n\n")
+      .setColor("RANDOM")
+
+      let embed2 = new Discord.MessageEmbed()
+      .setTitle("Fuzzybrain Bot Help [Prefix !]")
+      .addField("Info Commands", "**Invites:** Check how many people you've invited to the server! \n\n **pronoun:** Add or remove any pronoun roles!\n\n **Remind** Set a specified amount of time to remind you of something! \n\n **Userinfo:** Check your discord information! \n\n ")
+      .setColor("RANDOM")
+
       slash.command({
-        
+        ephemeral: true,
         guildOnly: true,
         guildID: "646074330249429012",
         data: {
             name: "help",
             description: "Get help from the Bot",
             type: 4,
-            content: embed
+            content: 'here is your embed',
+            embeds: [embed2, embed]
            
         
             
         }
     })
 
+
+    bot.on('guildMemberAdd', async member => {
+      const channel = member.guild.channels.cache.find(ch => ch.name === 'test');
+      if (!channel) return;
+     const joinDate = moment(member.joinedAt).format('MMMM Do YYYY');
+
+      const { registerFont, createCanvas } = require('canvas')
+  registerFont('./font/Truckin.ttf', { family: 'Truckin' }) 
+
+      const canvas = Canvas.createCanvas(500, 200);
+      const context = canvas.getContext('2d');
+    
+      const background = await Canvas.loadImage('https://media.discordapp.net/attachments/492703825287839754/857441284570480650/welcomecard.png');
+      context.drawImage(background, 0, 0, canvas.width, canvas.height);
+    
+      context.strokeStyle = '#74037b';
+      context.strokeRect(0, 0, canvas.width, canvas.height);
+    
+ 
+      context.font = '35px Truckin';
+      context.fillStyle = '#000000';
+      context.fillText(`${member.user.username}#${member.user.discriminator}`, 125, 140);
+
+      context.font = '20px Truckin';
+      context.fillStyle = '#000000';
+      context.fillText(`Member #${member.guild.memberCount}`, 180,82);
+    
+      context.font = '18px Truckin';
+      context.fillStyle = '#000000';
+      context.fillText(`${joinDate}`, 200, 192);
+    
+      const avatar = await Canvas.loadImage(member.user.displayAvatarURL({ format: 'png' }));
+      context.drawImage(avatar, 0, 0, 92, 92);
+    
+      const attachment = new Discord.MessageAttachment(canvas.toBuffer(), 'welcome.png');
+    
+      let wembed = new Discord.MessageEmbed()
+        .setAuthor(`${member.user.username} has joined!`)
+        .setColor('RANDOM')
+        .setDescription(`Welcome to the server, ${member.user}!\n\n Here are a few helpful channels to get you started:\n\n<#732726820893360140>- General rules for the server, read these over!\n\n<#658074540194398238>- A guide for the server bots & channels\n\n<#646074330249429016>- The main chat channel, hop in and say hello!\n\n Enjoy Your Stay!`)
+        .attachFiles(attachment)
+.setImage('attachment://welcome.png');
+    channel.send(wembed);
+    channel.send(`${member.user} has joined, Give them a big welcome!`)
+    });
+    
+    bot.on('message', message => {
+      if (message.content === '!join') {
+        bot.emit('guildMemberAdd', message.member);
+      }
+    });
+
+
     bot.counter = 0;
 bot.maxCount = 3;
+
 
 
 
@@ -218,6 +283,7 @@ const channel2 = bot.channels.cache.get('739954713818300456');
 
   
   )})
+
 
 
 
