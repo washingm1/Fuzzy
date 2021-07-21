@@ -12,6 +12,9 @@ const canvacord = require("canvacord");
 const slash = new Slash(bot);
 const moment = require ('moment')
 const Canvas = require('canvas');
+const ms = require("parse-ms");
+const guildID = '646074330249429012'
+const { MessageButton, MessageActionRow } = require('discord-buttons');
 
 require('discord-buttons')(bot)
 
@@ -27,11 +30,110 @@ fs.readdir("./commands/", (err, files) => {
     console.log("Couldn't find commands.");
     return;
   }
-  
 
+  
   jsfile.forEach((f, i) =>{
-    let props = require(`./commands/${f}` || `./util/${f}` );
+    let props = require(`./commands/${f}`);
     console.log(`${f} loaded!`);
+    bot.commands.set(props.help.name, props);
+    props.help.aliases.forEach(alias => { 
+      bot.aliases.set(alias, props.help.name);
+  
+  });
+});
+
+
+})
+console.log('ECON COMMANDS \n\n\n')
+fs.readdir("./commands/economy_commands", (err, files) => {
+
+  if(err) console.log(err);
+  let jsfile = files.filter(f => f.split(".").pop() === "js");
+  if(jsfile.length <= 0){
+    console.log("Couldn't find commands.");
+    return;
+  }
+
+  
+  jsfile.forEach((f, i) =>{
+    let props = require(`./commands/economy_commands/${f}`);
+    console.log(`${f} Economy Command loaded!`);
+    bot.commands.set(props.help.name, props);
+    props.help.aliases.forEach(alias => { 
+      bot.aliases.set(alias, props.help.name);
+  
+  });
+});
+
+
+})
+
+//MISC COMMANDS
+console.log('MISC COMMANDS \n\n\n')
+
+fs.readdir("./commands/misc", (err, files) => {
+
+  if(err) console.log(err);
+  let jsfile = files.filter(f => f.split(".").pop() === "js");
+  if(jsfile.length <= 0){
+    console.log("Couldn't find commands.");
+    return;
+  }
+
+  
+  jsfile.forEach((f, i) =>{
+    let props = require(`./commands/misc/${f}`);
+    console.log(`${f} Misc loaded!`);
+    bot.commands.set(props.help.name, props);
+    props.help.aliases.forEach(alias => { 
+      bot.aliases.set(alias, props.help.name);
+  
+  });
+});
+
+
+})
+
+//MOD COMMANDS
+
+fs.readdir("./commands/mod_commands", (err, files) => {
+
+  if(err) console.log(err);
+  let jsfile = files.filter(f => f.split(".").pop() === "js");
+  if(jsfile.length <= 0){
+    console.log("Couldn't find commands.");
+    return;
+  }
+
+  
+  jsfile.forEach((f, i) =>{
+    let props = require(`./commands/mod_commands/${f}`);
+    console.log(`${f} Moderation loaded!`);
+    bot.commands.set(props.help.name, props);
+    props.help.aliases.forEach(alias => { 
+      bot.aliases.set(alias, props.help.name);
+  
+  });
+});
+
+
+})
+
+//UTILITY COMMANDS
+
+fs.readdir("./commands/util", (err, files) => {
+
+  if(err) console.log(err);
+  let jsfile = files.filter(f => f.split(".").pop() === "js");
+  if(jsfile.length <= 0){
+    console.log("Couldn't find commands.");
+    return;
+  }
+
+  
+  jsfile.forEach((f, i) =>{
+    let props = require(`./commands/util/${f}`);
+    console.log(`${f} Utility loaded!`);
     bot.commands.set(props.help.name, props);
     props.help.aliases.forEach(alias => { 
       bot.aliases.set(alias, props.help.name);
@@ -43,6 +145,14 @@ fs.readdir("./commands/", (err, files) => {
 })
 
 
+
+
+
+
+
+//On Events
+
+
 bot.on("ready", async () => {
   console.log(`${bot.user.username} is online on ${bot.guilds.size} servers!`);
   bot.user.setActivity(`In Development`);
@@ -51,7 +161,7 @@ bot.on("ready", async () => {
   const Discord = require('discord.js');
   const client = new Discord.Client();
 
-  
+
 
  slash.command({
           guildOnly: true,
@@ -65,34 +175,32 @@ bot.on("ready", async () => {
           }
       })
  
-      let embed = new Discord.MessageEmbed()
-      .setTitle("Fuzzybrain Bot Help [Prefix !]")
-      .addField("Economy Commands", "**Work:** Get a random amount of credits for working! Cooldown every 30 minutes \n **rob:** Steal a random amount of credits from another user! \n **pay:** Give another user a specified amount of credits! \n\n **balance:** Check the amount of credits and tokens you have \n\n **top:** view the users with the most points in the server \n\n **profile:** view your personal stats \n\n **withdraw:** Take out a specified amount of credits from the bank \n\n **deposit:** Deposit a specified amount of credits in the bank \n\n **daily:** Collect credits on a daily basis! \n\n **buy:** Buy a role from the shop \n\n")
-      .setColor("RANDOM")
 
-      let embed2 = new Discord.MessageEmbed()
-      .setTitle("Fuzzybrain Bot Help [Prefix !]")
-      .addField("Info Commands", "**Invites:** Check how many people you've invited to the server! \n\n **pronoun:** Add or remove any pronoun roles!\n\n **Remind** Set a specified amount of time to remind you of something! \n\n **Userinfo:** Check your discord information! \n\n ")
-      .setColor("RANDOM")
 
-      slash.command({
-        ephemeral: true,
-        guildOnly: true,
-        guildID: "646074330249429012",
-        data: {
-            name: "help",
-            description: "Get help from the Bot",
-            type: 4,
-            content: 'here is your embed',
-            embeds: [embed2, embed]
-           
-        
-            
-        }
-    })
-
+    //Welcome Message
 
     bot.on('guildMemberAdd', async member => {
+    
+      let alertRole = new MessageButton()
+      .setStyle('green')
+      .setLabel('Get the Alerts Role')
+      .setID('alert')
+
+      let serverGuide = new MessageButton()
+      .setStyle('blurple')
+      .setLabel('Server Guide')
+      .setID('guide')
+
+      let rules = new MessageButton()
+      .setStyle('blurple')
+      .setLabel('Server Rules')
+      .setID('rules')
+  
+    let Role = new MessageActionRow()
+      .addComponent(alertRole)
+
+     
+
       const channel = member.guild.channels.cache.find(ch => ch.name === 'test');
       if (!channel) return;
      const joinDate = moment(member.joinedAt).format('MMMM Do YYYY');
@@ -112,15 +220,18 @@ bot.on("ready", async () => {
  
       context.font = '35px Truckin';
       context.fillStyle = '#000000';
-      context.fillText(`${member.user.username}#${member.user.discriminator}`, 125, 140);
+      context.textAlign  = "center";
+      context.fillText(`${member.user.username}#${member.user.discriminator}`, 250, 140);
 
       context.font = '20px Truckin';
       context.fillStyle = '#000000';
-      context.fillText(`Member #${member.guild.memberCount}`, 180,82);
+      context.textAlign  = "center";
+      context.fillText(`Member #${member.guild.memberCount}`, 250,82);
     
       context.font = '18px Truckin';
       context.fillStyle = '#000000';
-      context.fillText(`${joinDate}`, 200, 192);
+      context.textAlign  = "center";
+      context.fillText(`${joinDate}`, 250, 192);
     
       const avatar = await Canvas.loadImage(member.user.displayAvatarURL({ format: 'png' }));
       context.drawImage(avatar, 0, 0, 92, 92);
@@ -130,13 +241,33 @@ bot.on("ready", async () => {
       let wembed = new Discord.MessageEmbed()
         .setAuthor(`${member.user.username} has joined!`)
         .setColor('RANDOM')
-        .setDescription(`Welcome to the server, ${member.user}!\n\n Here are a few helpful channels to get you started:\n\n<#732726820893360140>- General rules for the server, read these over!\n\n<#658074540194398238>- A guide for the server bots & channels\n\n<#646074330249429016>- The main chat channel, hop in and say hello!\n\n Enjoy Your Stay!`)
+        .setDescription(`Welcome to the server, ${member.user}!\n\n Here are a few helpful channels to get you started:\n\n<#732726820893360140>- General rules for the server, read these over!\n\n<#658074540194398238>- A guide for the server bots & channels\n\n<#646074330249429016>- The main chat channel, hop in and say hello!\n\nClick the button below to receive the Alerts role, and be notified of any Dayglow-related news!\n\n Enjoy Your Stay!`)
         .attachFiles(attachment)
 .setImage('attachment://welcome.png');
-    channel.send(wembed);
+
+    channel.send({embed: wembed, component: Role })
     channel.send(`${member.user} has joined, Give them a big welcome!`)
+
+    bot.on('clickButton', async (button) => {
+      button.reply.defer()
+    if (button.id == 'alert'){
+      if (button.clicker.user.id !== member.user.id) return;
+
+      await button.guild.members.cache.get(member.user.id).roles.add('740221831197360237');
+        channel.send("You now have the alerts role!").then(msg => {msg.delete({ timeout: 5000 }) }).catch('error'); 
+    }
+
+    
+  });
+  
+
     });
     
+
+
+
+
+
     bot.on('message', message => {
       if (message.content === '!join') {
         bot.emit('guildMemberAdd', message.member);
@@ -144,17 +275,28 @@ bot.on("ready", async () => {
     });
 
 
+
+
     bot.counter = 0;
 bot.maxCount = 3;
 
 
 
+bot.on("message", async message => {
 
-  bot.on("message", async message => {
+
+  if (message.channel.type === 'dm'){
+   
+  }
+
     if(message.author.bot) return;
 
- 
+//REMEMBER TO REMOVE WHEN UPLOADING TO HOST//To restrict local version to test channel
+
+if (message.channel.id !== '732757852615344139') return;
   
+
+    //POLLS
 if(message.channel.id === '845488614753304596'){
     const { content } = message
     const eachLine = content.split('\n')
@@ -168,66 +310,11 @@ if(message.channel.id === '845488614753304596'){
   };
 
 
-//SCAVENGER HUNT CODE
-
-let guildID = '646074330249429012'
-
-  if(message.channel.type === "dm"){
-        if(message.content === "2080"){
-          let embed = new Discord.MessageEmbed()
-          .setTitle('Good Job!')
-          .setColor('RANDOM')
-          .setDescription('You cracked the first clue! To advance, you must unscramble this phrase:\n\nqaesonnstwarneudesatcripiio')
-          .setFooter('HINT: There are three words, the first letter in the scramble, is the first letter of the first word')
-          message.author.send(embed)
-
-        //QnA description will have a phrase to send 'Send bot 'Unlock Fuzzy'
-        }
-      
-const channel = bot.channels.cache.get('856587120789028885');
-const channel2 = bot.channels.cache.get('739954713818300456');
-
-          if (message.content === 'Unlock Channel') {
-        
-             channel.updateOverwrite(message.author,{
-                 VIEW_CHANNEL: true
-             })    
-           
-             let scavWelcome = new Discord.MessageEmbed()
-             .setTitle('Almost There!')
-             .setDescription(`Welcome ${message.author}! \n\nFor your final step, name this song\n\n **Send the title to ${bot.user}, please capitalize the first letter of the song name!**`)
-             .setThumbnail(message.author.displayAvatarURL({ dynamic: true }))
-             .setColor('RANDOM')
-          channel.send(scavWelcome);
-          channel.send(`${message.author}`);
-          }
-
-          if (message.content === 'December'){
-            
-            if (bot.counter === bot.maxCount){
-              bot.counter = 0
-              return message.author.send('**Good Try!**\n\n Maximum winners reached, almost had it!')
-            }
-            else bot.counter++;
-              let scavFinish = new Discord.MessageEmbed()
-              .setTitle('Congratulations!')
-              .setThumbnail(message.author.displayAvatarURL({ dynamic: true }))
-              .setDescription(`**Congrats ${message.author}! You have completed the Scavenger hunt, you placed number ${bot.counter}!**`)
-              .addField('Rewards', `For your reward, you now have a color customizeable role, and credits!`)
-              .addField('1st Place', '15,000 Credits')
-              .addField('2nd Place', '10,000 Credits')
-              .addField('3rd Place', '7,500 Credits')
-              .setColor('RANDOM')
-              message.author.send(scavFinish)
-             channel2.send(`${message.author} placed #${bot.counter}\n\n Author ID: ${message.author.id}`)
-          }
-
-      
-    } ;
-
-//END SCAVENGER HUNT CODE
 
 
+
+
+//XP function
     {
       {
        xp(message)
@@ -239,27 +326,44 @@ const channel2 = bot.channels.cache.get('739954713818300456');
 
    }
   
-   
-   function xp(message){
+    function xp(message){
      if(message.author.bot) return
      const randomNumber = Math.floor(Math.random() * 10) + 15;
      const randomNumber2 = Math.floor(Math.random() * 5);
+
+     let author = db.fetch(`xpCool_${message.guild.id}_${message.author.id}`)
+
+     let timeout = 5000;
+     
+     if (author !== null && timeout - (Date.now() - author) > 0) {
+ 
+      return;
+    }  db.set(`xpCool_${message.guild.id}_${message.author.id}`, Date.now())
+
      db.add(`guild_${message.guild.id}_xp_${message.author.id}`, randomNumber)
      db.add(`guild_${message.guild.id}_xptotal_${message.author.id}`, randomNumber)
-
      db.add(`money_${message.guild.id}_${message.author.id}`, randomNumber2)
+     db.add(`xptotal_${message.guild.id}_${message.author.id}`, randomNumber)
 
      var level = db.get(`guild_${message.guild.id}_level_${message.author.id}`) || 1
      var xp = db.get(`guild_${message.guild.id}_xp_${message.author.id}`)
-     var xpNeeded = level * 500;
-     if(xpNeeded < xp){
-       var newLevel = db.add(`guild_${message.guild.id}_level_${message.author.id}`, 1)
+     var xpNeeded = level * 850;
+     if(xp > xpNeeded){
+     db.add(`guild_${message.guild.id}_level_${message.author.id}`, 1)
        db.subtract(`guild_${message.guild.id}_xp_${message.author.id}`, xpNeeded)
-       message.channel.send(`${message.author}, you are now level ${newLevel}!`)
+       message.channel.send(`${message.author} Congrats! you are now level **${level + 1}**!`)
+  
      }
+     console.log(level)
+     
+     if (level === 50){
+       message.guild.members.cache.get(message.author.id).roles.add('733062488358256750');
+      
+    }
+   
    } 
- }
-
+    
+    }
 
     let prefix = botconfig.prefix
     let messageArray = message.content.split(" ");
@@ -283,9 +387,6 @@ const channel2 = bot.channels.cache.get('739954713818300456');
 
   
   )})
-
-
-
 
 
 
