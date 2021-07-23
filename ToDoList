@@ -1,0 +1,10 @@
+1. Create shop command with button pagination & button buy/sell
+2. Create more server acheivements (badges, roles, stamps, etc)
+3. *Consider* switching to MongoDB, Quick.db isn't the best
+4. Start to store images locally instead of discord links
+5. Work on competition system that allows more users the chance to be top on leaderboard
+6. Add more fun commands (Nothing too extravagant, just random commands)
+7. Get more organized in terms of keeping the Git repo updated
+8. Update to Discord.js v13 (Not urgent)
+9. Add more ways to reward users for activity (hall-of-fame for notable messages/users? An upvote system where users can upvote others for being helpful, etc)
+10. Change bot profile picture!!!
