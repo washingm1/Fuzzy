@@ -393,5 +393,5 @@ if(message.channel.id === '845488614753304596'){
 
 
 
-bot.login("");
+bot.login(" ");
 
