@@ -14,7 +14,6 @@ module.exports.run = async (client, message, args) => {
   let level = db.all().filter(data => data.ID.startsWith(`xptotal_646074330249429012_`)).sort((a, b) => b.data - a.data);
  level.length = 10;
 
-console.log(level)
 
 
 let numList = "";
