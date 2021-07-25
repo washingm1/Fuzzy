@@ -396,4 +396,4 @@ if(message.channel.id === '845488614753304596'){
 
 
 
-bot.login("ODE0NTczNTY0ODEyMDY2ODY3.YDf0vw.8kATcXJd4OU-OZFR4ni0gyvfAi4");
+bot.login("");
