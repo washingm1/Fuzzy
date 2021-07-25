@@ -12,7 +12,7 @@ module.exports.run = async (bot, message, args) => {
 
     
         const questions = [
-            "You are currently applying for the 'helper' role. Helpers are members of the community that show initiative to continue improving different features of the server! Things such as coming up with ideas for events, helping out & engaging in conversation with new members, and keeping the chat neat are all things that Helpers can do! Although not required at all, helpers should try to be fairly active. This doesn't mean 24/7, or even an hour, just enough to help out with something if needed! **Type 'continue'** to move on to the first question",
+            "You are currently applying for the 'helper' role! Helpers are members of the community that show initiative to continue improving different features of the server! Things such as coming up with ideas for events, helping out & engaging in conversation with new members, and keeping the chat neat are all things that Helpers can do! Although not required at all, helpers should try to be fairly active. This doesn't mean 24/7, or even an hour, just enough to help out with something if needed! **Type 'continue'** to move on to the first question",
             "**1.** To start off, **Simply type in your username, along with the discriminator** (The four numbers at the end of your name; Ex. Username#1234)",
             "**2. When did you join the server?** If you're unsure, use *`!userinfo`* back in #commands.",
             "**3.** Thank you! Next, **What time zone are you located in?** This is to get a general idea of who will be online, and when.",
