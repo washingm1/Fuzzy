@@ -2,4 +2,5 @@
 ## Discord.js v12 w/ Quick.db
 ### An economy bot for the Dayglow Discord
 
-![Dayglow Logo](https://media.discordapp.net/attachments/732757852615344139/868885137616666634/flowerdaylow_1.gif?width=499&height=499)
+![flowerdaylow_1](https://user-images.githubusercontent.com/44791199/126905580-85c560cb-885a-4a33-9cf2-0c5ef9f2678e.gif)
+
