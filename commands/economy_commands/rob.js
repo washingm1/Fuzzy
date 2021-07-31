@@ -9,9 +9,7 @@ let user = message.mentions.members.first()
 let targetuser = await db.fetch(`money_${message.guild.id}_${user.id}`)
 
 
-let amount =  Math.floor(Math.random() * 200) + 15;
-
-
+let amount = 100;
 
 let rob = await db.fetch(`robToken_${message.guild.id}_${message.author.id}`)
 
@@ -31,14 +29,14 @@ if (rob < 1) {
 } 
  
 
-
-
 let moneyEmbed2 = new Discord.MessageEmbed()
   .setColor("#FFFFFF")
   .setDescription(`🚫 ${user.user.username} does not have anything you can rob`);
-if (targetuser <= 0) {
+
+if (targetuser <= 0 || targetuser <= amount) {
     return message.channel.send(moneyEmbed2)
 }
+
 
 let testChance =  Math.floor(Math.random() * 200) + 1;
 
