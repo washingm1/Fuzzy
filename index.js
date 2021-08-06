@@ -1,288 +1,182 @@
 const botconfig = require("./botconfig.json");
 const Discord = require("discord.js");
 const fs = require("fs");
-const bot = new Discord.Client({disableEveryone: true});
+const { Client, Collection } = require("discord.js");
+const bot = new Client({ intents: ['GUILDS', 'GUILD_MESSAGES'] });
 const prefix="!";
 const db = require('quick.db');
-const Canvacord = require('canvacord');
-const client = new Discord.Client(); 
-const { Slash } = require('discord-slash-commands');
+module.exports = bot;
+const { token } = require("../economybot-master/token");
 const { profile, time } = require("console");
-const canvacord = require("canvacord");
-const slash = new Slash(bot);
 const moment = require ('moment')
 const Canvas = require('canvas');
 const ms = require("parse-ms");
 const guildID = '646074330249429012'
-const { MessageButton, MessageActionRow } = require('discord-buttons');
-
-require('discord-buttons')(bot)
-
-bot.commands = new Discord.Collection();
-bot.aliases = new Discord.Collection();
+const { MessageActionRow, MessageButton } = require('discord.js');
 
 
-fs.readdir("./commands/", (err, files) => {
 
-  if(err) console.log(err);
-  let jsfile = files.filter(f => f.split(".").pop() === "js");
-  if(jsfile.length <= 0){
-    console.log("Couldn't find commands.");
-    return;
+const client = new Client({
+    intents: 32767,
+});
+module.exports = client;
+
+// Global Variables
+client.commands = new Collection();
+client.slashCommands = new Collection();
+client.config = require("./botconfig.json");
+
+// Initializing the project
+require("./handler")(client);
+
+
+bot.aliases = new Collection();
+
+
+//Command handler
+
+const subFolders = fs.readdirSync('./commands/');
+
+for (const folder of subFolders) {
+    const commandFiles = fs.readdirSync(`./commands/${folder}`).filter(f => f.split(".").pop() === "js");
+    let jsfile = commandFiles.filter(f => f.split(".").pop() === "js");
+    jsfile.forEach((f, i) => {
+      let props = require(`./commands/${folder}/${f}`);
+      console.log(`${f} command is online!`);
+      client.commands.set(props.help.name, props);
+      props.help.aliases.forEach(alias => { 
+        bot.aliases.set(alias, props.help.name);
+    
+    });
+    });
+}
+
+
+
+   //Welcome Message
+
+   bot.on('guildMemberAdd', async member => {
+    
+    const row = new MessageActionRow()
+  .addComponents(
+    new MessageButton()
+    .setCustomId('alerts')
+    .setLabel('Alerts Role')
+    .setStyle('blurple')
+      )
+ 
+
+   member.send('Welcome to the server! Be sure to check out #rules and #server-guide')
+
+    const channel = member.guild.channels.cache.find(ch => ch.name === 'test-local-bot-1');
+    if (!channel) return;
+
+   const joinDate = moment(member.joinedAt).format('MMMM Do YYYY');
+
+    const { registerFont, createCanvas } = require('canvas')
+registerFont('./font/Truckin.ttf', { family: 'Truckin' }) 
+
+    const canvas = Canvas.createCanvas(500, 200);
+    const context = canvas.getContext('2d');
+  
+    const background = await Canvas.loadImage('https://media.discordapp.net/attachments/492703825287839754/857441284570480650/welcomecard.png');
+    context.drawImage(background, 0, 0, canvas.width, canvas.height);
+  
+    context.strokeStyle = '#74037b';
+    context.strokeRect(0, 0, canvas.width, canvas.height);
+  
+
+    let nickname = `${member.user.username}`
+
+    let discrim = `${member.user.discriminator}`
+
+    if (nickname.length > 6){
+        nickname = `${nickname.slice(0, 8)}... #${discrim}` 
+      }
+    context.font = '35px Truckin';
+    context.fillStyle = '#000000';
+    context.textAlign  = "center";
+    context.fillText(`${nickname} #${discrim}`, 250, 140);
+
+    context.font = '20px Truckin';
+    context.fillStyle = '#000000';
+    context.textAlign  = "center";
+    context.fillText(`Member #${member.guild.memberCount}`, 250,82);
+  
+    context.font = '18px Truckin';
+    context.fillStyle = '#000000';
+    context.textAlign  = "center";
+    context.fillText(`${joinDate}`, 250, 192);
+  
+    const avatar = await Canvas.loadImage(member.user.displayAvatarURL({ format: 'png' }));
+    context.drawImage(avatar, 0, 0, 92, 92);
+  
+    const attachment = new Discord.MessageAttachment(canvas.toBuffer(), 'welcome.png');
+  
+    let wembed = new Discord.MessageEmbed()
+      .setAuthor(`${member.user.username} has joined!`)
+      .setColor('RANDOM')
+      .setDescription(`Welcome to the server, ${member.user}!\n\n Here are a few helpful channels to get you started:\n\n<#732726820893360140>- General rules for the server, read these over!\n\n<#658074540194398238>- A guide for the server bots & channels\n\n<#646074330249429016>- The main chat channel, hop in and say hello!\n\nClick the button below to receive the Alerts role, and be notified of any Dayglow-related news!\n\n Enjoy Your Stay!`)
+      .attachFiles({files: [attachment]})
+.setImage('attachment://welcome.png');
+
+  channel.send({embed: [wembed], components: [row]})
+  channel.send(`${member.user} has joined, Give them a big welcome!`)
+
+  bot.on('clickButton', async (button) => {
+    button.reply.defer()
+  if (button.id == 'alert'){
+    if (button.clicker.user.id !== member.user.id) return;
+
+    await button.guild.members.cache.get(member.user.id).roles.add('740221831197360237');
+      channel.send("You now have the alerts role!").then(msg => {msg.delete({ timeout: 5000 }) }).catch('error'); 
   }
 
-  
-  jsfile.forEach((f, i) =>{
-    let props = require(`./commands/${f}`);
-    console.log(`${f} loaded!`);
-    bot.commands.set(props.help.name, props);
-    props.help.aliases.forEach(alias => { 
-      bot.aliases.set(alias, props.help.name);
-  
+});
+  });
+
+  bot.on('messageCreate', message => {
+    if (message.content === '!join') {
+      bot.emit('guildMemberAdd', message.member);
+    }
+  });
+
+
+
+client.on("ready", async () => {
+
+  const guild = client.guilds.cache.get("646074330249429012");
+  client.user.setActivity(` ${guild.memberCount} users`, {
+    'type': "WATCHING"
   });
 });
-
-
-})
-console.log('ECON COMMANDS \n\n\n')
-fs.readdir("./commands/economy_commands", (err, files) => {
-
-  if(err) console.log(err);
-  let jsfile = files.filter(f => f.split(".").pop() === "js");
-  if(jsfile.length <= 0){
-    console.log("Couldn't find commands.");
-    return;
-  }
-
-  
-  jsfile.forEach((f, i) =>{
-    let props = require(`./commands/economy_commands/${f}`);
-    console.log(`${f} Economy Command loaded!`);
-    bot.commands.set(props.help.name, props);
-    props.help.aliases.forEach(alias => { 
-      bot.aliases.set(alias, props.help.name);
-  
-  });
-});
-
-
-})
-
-//MISC COMMANDS
-console.log('MISC COMMANDS \n\n\n')
-
-fs.readdir("./commands/misc", (err, files) => {
-
-  if(err) console.log(err);
-  let jsfile = files.filter(f => f.split(".").pop() === "js");
-  if(jsfile.length <= 0){
-    console.log("Couldn't find commands.");
-    return;
-  }
-
-  
-  jsfile.forEach((f, i) =>{
-    let props = require(`./commands/misc/${f}`);
-    console.log(`${f} Misc loaded!`);
-    bot.commands.set(props.help.name, props);
-    props.help.aliases.forEach(alias => { 
-      bot.aliases.set(alias, props.help.name);
-  
-  });
-});
-
-
-})
-
-//MOD COMMANDS
-
-fs.readdir("./commands/mod_commands", (err, files) => {
-
-  if(err) console.log(err);
-  let jsfile = files.filter(f => f.split(".").pop() === "js");
-  if(jsfile.length <= 0){
-    console.log("Couldn't find commands.");
-    return;
-  }
-
-  
-  jsfile.forEach((f, i) =>{
-    let props = require(`./commands/mod_commands/${f}`);
-    console.log(`${f} Moderation loaded!`);
-    bot.commands.set(props.help.name, props);
-    props.help.aliases.forEach(alias => { 
-      bot.aliases.set(alias, props.help.name);
-  
-  });
-});
-
-
-})
-
-//UTILITY COMMANDS
-
-fs.readdir("./commands/util", (err, files) => {
-
-  if(err) console.log(err);
-  let jsfile = files.filter(f => f.split(".").pop() === "js");
-  if(jsfile.length <= 0){
-    console.log("Couldn't find commands.");
-    return;
-  }
-
-  
-  jsfile.forEach((f, i) =>{
-    let props = require(`./commands/util/${f}`);
-    console.log(`${f} Utility loaded!`);
-    bot.commands.set(props.help.name, props);
-    props.help.aliases.forEach(alias => { 
-      bot.aliases.set(alias, props.help.name);
-  
-  });
-});
-
-
-})
-
-
-
-
-
-
 
 //On Events
 
 
 bot.on("ready", async () => {
-  console.log(`${bot.user.username} is online on ${bot.guilds.size} servers!`);
-  bot.user.setActivity(`In Development`);
-  bot.user.setStatus('dnd');  
 
-  const Discord = require('discord.js');
-  const client = new Discord.Client();
+  const guild = bot.guilds.cache.get("646074330249429012");
+  console.log(`${bot.user.username} is now online in Dayglow!`);
 
 
 
- slash.command({
-          guildOnly: true,
-          guildID: "646074330249429012",
-          data: {
-              name: "ping",
-              description: "Ping pong?",
-              type: 4,
-              content: `Pong! \`${bot.ws.ping}ms\``,
-              
-          }
-      })
+  client.guilds.cache.get('646074330249429012')?.commands.set([])
+  client.api.applications(bot.user.id).guilds('646074330249429012').commands.set([])
+
+
+ /*  bot.api.applications(bot.user.id).guilds('646074330249429012').command.post({data: {
+    name: 'balance',
+    description: 'Balance Slash Command'
+  }}) */
  
 
-
-    //Welcome Message
-
-    bot.on('guildMemberAdd', async member => {
-    
-      let alertRole = new MessageButton()
-      .setStyle('green')
-      .setLabel('Get the Alerts Role')
-      .setID('alert')
-
-      let serverGuide = new MessageButton()
-      .setStyle('blurple')
-      .setLabel('Server Guide')
-      .setID('guide')
-
-      let rules = new MessageButton()
-      .setStyle('blurple')
-      .setLabel('Server Rules')
-      .setID('rules')
-  
-    let Role = new MessageActionRow()
-      .addComponent(alertRole)
-
-     
-
-      const channel = member.guild.channels.cache.find(ch => ch.name === 'test');
-      if (!channel) return;
-     const joinDate = moment(member.joinedAt).format('MMMM Do YYYY');
-
-      const { registerFont, createCanvas } = require('canvas')
-  registerFont('./font/Truckin.ttf', { family: 'Truckin' }) 
-
-      const canvas = Canvas.createCanvas(500, 200);
-      const context = canvas.getContext('2d');
-    
-      const background = await Canvas.loadImage('https://media.discordapp.net/attachments/492703825287839754/857441284570480650/welcomecard.png');
-      context.drawImage(background, 0, 0, canvas.width, canvas.height);
-    
-      context.strokeStyle = '#74037b';
-      context.strokeRect(0, 0, canvas.width, canvas.height);
-    
- 
-      context.font = '35px Truckin';
-      context.fillStyle = '#000000';
-      context.textAlign  = "center";
-      context.fillText(`${member.user.username}#${member.user.discriminator}`, 250, 140);
-
-      context.font = '20px Truckin';
-      context.fillStyle = '#000000';
-      context.textAlign  = "center";
-      context.fillText(`Member #${member.guild.memberCount}`, 250,82);
-    
-      context.font = '18px Truckin';
-      context.fillStyle = '#000000';
-      context.textAlign  = "center";
-      context.fillText(`${joinDate}`, 250, 192);
-    
-      const avatar = await Canvas.loadImage(member.user.displayAvatarURL({ format: 'png' }));
-      context.drawImage(avatar, 0, 0, 92, 92);
-    
-      const attachment = new Discord.MessageAttachment(canvas.toBuffer(), 'welcome.png');
-    
-      let wembed = new Discord.MessageEmbed()
-        .setAuthor(`${member.user.username} has joined!`)
-        .setColor('RANDOM')
-        .setDescription(`Welcome to the server, ${member.user}!\n\n Here are a few helpful channels to get you started:\n\n<#732726820893360140>- General rules for the server, read these over!\n\n<#658074540194398238>- A guide for the server bots & channels\n\n<#646074330249429016>- The main chat channel, hop in and say hello!\n\nClick the button below to receive the Alerts role, and be notified of any Dayglow-related news!\n\n Enjoy Your Stay!`)
-        .attachFiles(attachment)
-.setImage('attachment://welcome.png');
-
-    channel.send({embed: wembed, component: Role })
-    channel.send(`${member.user} has joined, Give them a big welcome!`)
-
-    bot.on('clickButton', async (button) => {
-      button.reply.defer()
-    if (button.id == 'alert'){
-      if (button.clicker.user.id !== member.user.id) return;
-
-      await button.guild.members.cache.get(member.user.id).roles.add('740221831197360237');
-        channel.send("You now have the alerts role!").then(msg => {msg.delete({ timeout: 5000 }) }).catch('error'); 
-    }
-
-    
-  });
-  
-
-    });
-    
-
-
-
-
-
-    bot.on('message', message => {
-      if (message.content === '!join') {
-        bot.emit('guildMemberAdd', message.member);
-      }
-    });
-
-
-
-
-    bot.counter = 0;
+bot.counter = 0;
 bot.maxCount = 3;
 
 
 
-bot.on("message", async message => {
+bot.on("messageCreate", async message => {
 
 
   if (message.channel.type === 'dm'){
@@ -308,10 +202,6 @@ if(message.channel.id === '845488614753304596'){
       }
     }
   };
-
-
-
-
 
 
 //XP function
@@ -347,14 +237,14 @@ if(message.channel.id === '845488614753304596'){
 
      var level = db.get(`guild_${message.guild.id}_level_${message.author.id}`) || 1
      var xp = db.get(`guild_${message.guild.id}_xp_${message.author.id}`)
-     var xpNeeded = level * 850;
+     var xpNeeded = level * 850 + 500;
      if(xp > xpNeeded){
      db.add(`guild_${message.guild.id}_level_${message.author.id}`, 1)
        db.subtract(`guild_${message.guild.id}_xp_${message.author.id}`, xpNeeded)
        message.channel.send(`${message.author} Congrats! you are now level **${level + 1}**!`)
   
      }
-     console.log(level)
+   
      
      if (level === 50){
        message.guild.members.cache.get(message.author.id).roles.add('733062488358256750');
@@ -371,10 +261,10 @@ if(message.channel.id === '845488614753304596'){
     let cmd = args.shift().toLowerCase();
     let commandfile;
 
-    if (bot.commands.has(cmd)) {
-      commandfile = bot.commands.get(cmd);
+    if (client.commands.has(cmd)) {
+      commandfile = client.commands.get(cmd);
   } else if (bot.aliases.has(cmd)) {
-    commandfile = bot.commands.get(bot.aliases.get(cmd));
+    commandfile = client.commands.get(bot.aliases.get(cmd));
   }
   
       if (!message.content.startsWith(prefix)) return;
@@ -389,11 +279,4 @@ if(message.channel.id === '845488614753304596'){
   )})
 
 
-
-
-
-
-
-
-
-bot.login("");
+client.login(token.val);
