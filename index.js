@@ -201,7 +201,7 @@ bot.on("ready", async () => {
 
      
 
-      const channel = member.guild.channels.cache.find(ch => ch.name === 'test');
+      const channel = member.guild.channels.cache.find(ch => ch.name === 'welcome');
       if (!channel) return;
      const joinDate = moment(member.joinedAt).format('MMMM Do YYYY');
 
@@ -218,10 +218,13 @@ bot.on("ready", async () => {
       context.strokeRect(0, 0, canvas.width, canvas.height);
     
  
+    if (member.user.username.length > 6){
+        nickname = `${member.user.username.slice(0, 8)}...` 
+      }
       context.font = '35px Truckin';
       context.fillStyle = '#000000';
       context.textAlign  = "center";
-      context.fillText(`${member.user.username}#${member.user.discriminator}`, 250, 140);
+      context.fillText(`${nickname}#${member.user.discriminator}`, 250, 140);
 
       context.font = '20px Truckin';
       context.fillStyle = '#000000';
@@ -241,7 +244,7 @@ bot.on("ready", async () => {
       let wembed = new Discord.MessageEmbed()
         .setAuthor(`${member.user.username} has joined!`)
         .setColor('RANDOM')
-        .setDescription(`Welcome to the server, ${member.user}!\n\n Here are a few helpful channels to get you started:\n\n<#732726820893360140>- General rules for the server, read these over!\n\n<#658074540194398238>- A guide for the server bots & channels\n\n<#646074330249429016>- The main chat channel, hop in and say hello!\n\nClick the button below to receive the Alerts role, and be notified of any Dayglow-related news!\n\n Enjoy Your Stay!`)
+        .setDescription(`Welcome to the server, ${member.user}!\n\n Here are a few helpful channels to get you started:\n\n<#658074540194398238>- General rules for the server, read these over!\n\n<#732726820893360140>- A guide for the server bots & channels\n\n<#646074330249429016>- The main chat channel, hop in and say hello!\n\nClick the button below to receive the Alerts role, and be notified of any Dayglow-related news!\n\n Enjoy Your Stay!`)
         .attachFiles(attachment)
 .setImage('attachment://welcome.png');
 
@@ -271,9 +274,9 @@ bot.on("ready", async () => {
     bot.on('message', message => {
       if (message.content === '!join') {
         bot.emit('guildMemberAdd', message.member);
+        
       }
     });
-
 
 
 
@@ -282,7 +285,61 @@ bot.maxCount = 3;
 
 
 
+bot.on("message", async (message) => {
+  if (message.channel.id !== "869327659526660106") return;
+  if (message.author.bot) return;
+  if (message.attachments.size == 0) return;
+  message.react("⭐");
+});
+
+bot.on("messageReactionAdd", (reaction, user) => {
+ 
+  const message = reaction.message;
+ 
+  // You could use your 👍 reaction for a neat safety check,
+  // so images that were already sent to the channel don't get sent again.
+  // We treat 👍 reaction as an indication that the bot has already sent the image to the specified channel.
+  // This way when someone unreacts and adds the reaction back,
+  // or when someone adds the reaction after it met the two upvote treshold,
+  // it won't get sent again.
+  if (message.reactions.cache.some(re => re.emoji.name === "👍" && re.users.cache.has(bot.user.id))) {
+      return;
+  }
+
+  let upvoteLimit = 10;
+  // Number of reactions needed to be cast by the users (including the bot itself)
+  // in order for the image to be sent to another channel.
+  
+  if (reaction.emoji.name == "⭐" && reaction.count >= upvoteLimit) {
+      const channel = message.guild.channels.cache.find(ch => ch.name === "harmony-hall-of-fame");
+      channel.send(`--------------------------------------------\n<@${message.author.id}> **has made it to the hall of fame!** :trophy: \n\n***Their Caption:*** __*"${message.content}"*__`, {files:[message.attachments.first().url]});
+      message.react("👍");
+  }
+
+});
+
+
+
 bot.on("message", async message => {
+  if(message.channel.id === '732757852615344139')return; //test channel 1
+if(message.channel.id === '869320373651537920')return; // test channel 2
+
+/* 
+  if(message.author.bot) return;
+  if (message.attachments.size == 0) return;
+  message.react("⭐")
+
+  bot.on('messageReactionAdd', async (reaction, user) => {
+  let limit = 2; 
+  if (reaction.emoji.name == '⭐' && reaction.count >= limit){
+    const channel = message.guild.channels.cache.find(ch => ch.name === 'harmony-hall-of-fame');
+    channel.send(`<@${message.author.id}> **has made it to the hall of fame 🏆**\n\n ${message.content}`, {files:[message.attachments.first().url]});
+    setTimeout(function(){ 
+      console.log("Ready")
+  }, 1000);
+   await message.delete()
+  }
+}) */
 
 
   if (message.channel.type === 'dm'){
@@ -291,10 +348,7 @@ bot.on("message", async message => {
 
     if(message.author.bot) return;
 
-//REMEMBER TO REMOVE WHEN UPLOADING TO HOST//To restrict local version to test channel
-
-if (message.channel.id !== '732757852615344139') return;
-  
+if (message.channel.id === '732757852615344139') return;
 
     //POLLS
 if(message.channel.id === '845488614753304596'){
@@ -347,14 +401,14 @@ if(message.channel.id === '845488614753304596'){
 
      var level = db.get(`guild_${message.guild.id}_level_${message.author.id}`) || 1
      var xp = db.get(`guild_${message.guild.id}_xp_${message.author.id}`)
-     var xpNeeded = level * 850;
+     var xpNeeded = level * 850 + 500;
      if(xp > xpNeeded){
      db.add(`guild_${message.guild.id}_level_${message.author.id}`, 1)
        db.subtract(`guild_${message.guild.id}_xp_${message.author.id}`, xpNeeded)
        message.channel.send(`${message.author} Congrats! you are now level **${level + 1}**!`)
   
      }
-     console.log(level)
+    
      
      if (level === 50){
        message.guild.members.cache.get(message.author.id).roles.add('733062488358256750');
@@ -395,5 +449,5 @@ if(message.channel.id === '845488614753304596'){
 
 
 
-
 bot.login("");
+
