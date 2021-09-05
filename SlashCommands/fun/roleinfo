@@ -1,0 +1,94 @@
+const { Client, CommandInteraction } = require("discord.js");
+const Discord = require("discord.js");
+const db = require("quick.db");
+const { MessageActionRow, MessageButton, MessageEmbed, Permissions } = require('discord.js');
+
+
+
+
+module.exports = {
+    name: "roleinfo",
+    description: "Check guild role Information",
+   
+    options: [
+        {
+            name: 'rolename',
+            required: true,
+            description: 'Which role do you want to look up?',
+            type: 'ROLE',
+        }
+    ],
+
+    /**
+     *
+     * @param {Client} client
+     * @param {CommandInteraction} interaction
+     * @param {String[]} args
+     */
+
+
+
+run: async (client, interaction, args, message) => {
+        await interaction.deferReply({ ephemeral: true}).catch(() => {});
+        let user = interaction.options.getUser('youruseroption') || interaction.user
+        const guild = client.guilds.cache.get("646074330249429012");
+
+    const [ rolename ] = args
+
+    console.log(rolename)
+        
+                 // Take every element from index 1 to the end
+               
+              //  console.log(rolename)
+              //  const perms = new Permissions(rolename.permissions.bitfield).toArray()
+    
+                const embed = new MessageEmbed()
+                    .setColor(`${rolename.color}`)
+                    .setTitle(`${rolename.name}`)
+                    .setThumbnail(guild.iconURL({ dynamic: true }))
+                    .setTimestamp()
+                    .addFields(
+                        {
+                            name: 'Role ID: ',
+                            value: `${rolename.id}`,
+                            inline: true
+                        },
+                        {
+                            name: 'Role Name: ',
+                            value: `${rolename.name}`,
+                            inline: true
+                        },
+                        {
+                            name: 'Mentionable: ',
+                            value: `${rolename.mentionable}` ? 'Yes' : 'No',
+                            inline: true
+                        },
+                        {
+                            name: 'Role Permissions: ',
+                            value: `${perms.join(', ')}`
+                        },
+                        {
+                            name: 'Created At:',
+                            value: `${rolename.createdAt}`,
+                            inline: true
+                        },
+                        {
+                            name: 'Number of Users',
+                            value: `${rolename.members.size}`
+                        },
+                        {
+                            name: 'Preview',
+                            value:  `${guild.roles.cache.get(rolename.id)}`,
+                            inline: true
+                        }
+                    )
+                    interaction.editReply({ embeds: [embed] })
+
+     
+
+         
+           
+    
+    
+},
+};
