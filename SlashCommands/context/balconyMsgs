@@ -1,0 +1,57 @@
+const { Client, CommandInteraction, Message, MessageEmbed, ContextMenuInteraction } = require("discord.js");
+const { MessageActionRow, MessageButton } = require('discord.js');
+const { MessageSelectMenu, MessageAttachment } = require('discord.js');
+const db = require("quick.db");
+
+module.exports = {
+    name: "Send to Balcony",
+    type: 'MESSAGE',
+
+
+    /**
+     *
+     * @param {Client} client
+     * @param {ContextMenuInteraction} interaction
+     * @param {String[]} args
+     */
+
+
+
+    run: async (client, interaction, args) => {
+        const guild = client.guilds.cache.get("646074330249429012");
+
+        const balconyChannel = interaction.guild.channels.cache.get('882412464266956861');
+
+
+            const msg = await interaction.channel.messages.fetch(
+                interaction.targetId
+            );
+
+            console.log(interaction.user.id)
+            console.log(msg.author.id)
+
+    if (msg.author.id == interaction.user.id) {
+    console.log('Tried to give to self'); 
+    return interaction.followUp({ content: `${interaction.user.username}, Can't send your own message to the balcony!` })
+    }
+    
+            const embed = new MessageEmbed()
+            .setTitle(`${msg.author.username} is on the Balcony!`)
+            .setDescription(`*${msg.content}*`)
+            .setFooter(`Given by ${interaction.user.tag}`)
+            .setThumbnail(msg.author.displayAvatarURL({ dynamic: true }))
+            .setImage(msg.attachments.first()?.url)
+            .setColor('RANDOM')
+            .addField(`Go To Message`, `[Link](${msg.url})`, true)
+            
+
+db.add(`balcony_${guild.id}_${msg.author.id}`, 1)
+     
+
+const ABC = await balconyChannel.send({content: `${msg.author}`, embeds: [embed] })
+ABC.react('⭐')
+
+interaction.followUp({ content: `${interaction.user.username} Sent a message to the balcony!` })
+
+    },
+};
