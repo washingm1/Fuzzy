@@ -1,0 +1,166 @@
+const { Client, CommandInteraction } = require("discord.js");
+const Discord = require("discord.js");
+const db = require("quick.db");
+const { MessageActionRow, MessageButton } = require('discord.js');
+const ms = require("ms");
+const Canvas = require('canvas');
+const { MessageEmbed } = require('discord.js');
+
+
+module.exports = {
+    name: "daily",
+    description: "Earn credits every 24 hours",
+
+    /**
+     *
+     * @param {Client} client
+     * @param {CommandInteraction} interaction
+     * @param {String[]} args
+     */
+
+
+
+run: async (client, interaction, args, message) => {
+  //console.log(interaction)
+        await interaction.deferReply({ ephemeral: false }).catch(() => {});
+        let user = interaction.options.getUser('youruseroption') || interaction.user
+        const guild = client.guilds.cache.get("646074330249429012");
+    
+
+
+        if (interaction.channel.id !== '732757852615344139') return; 
+         let amount = 0; 
+         let timeout = 86400000;
+       
+         let tokenAmt = 0;
+       
+       
+         if (interaction.member.roles.cache.has('734443360173162591')) {
+           amount = 600
+           } else
+         
+         if (interaction.member.roles.cache.has('733062488358256750')) {
+           amount = 300
+         
+           } else
+          
+           amount = 200;
+       
+           if  (interaction.member.roles.cache.has('733062488358256750')) {
+           tokenAmt = 2;
+           } else tokenAmt = 1;
+         
+         let daily = await db.fetch(`daily_${guild.id}_${user.id}`);
+       
+         if (daily !== null && timeout - (Date.now() - daily) > 0) {
+           let time = ms(timeout - (Date.now() - daily));
+         
+           const timeEmbed = new MessageEmbed()
+           .setColor("#FFFFFF")
+           .setDescription(`:no_entry_sign: You've already collected your daily reward\n\nCollect it again in ${time.hours}h ${time.minutes}m ${time.seconds}s `);
+           interaction.editReply({ embeds: [timeEmbed] } )
+         } else {
+           
+         db.add(`money_${guild.id}_${user.id}`, amount)
+         db.set(`daily_${guild.id}_${user.id}`, Date.now())
+         db.add(`dailyUse_${guild.id}_${user.id}`, 1)
+
+         let token = db.fetch(`token_${guild.id}_${user.id}`)
+       
+     let dailyUses = db.fetch(`dailyUse_${guild.id}_${user.id}`)
+
+  
+
+        const { registerFont, createCanvas } = require('canvas')
+        registerFont('./font/Neon.ttf', { family: 'Neon' }) 
+        
+         const canvas = Canvas.createCanvas(500,200);  
+         const ctx = canvas.getContext('2d');
+       
+         let background = []
+         
+         if (db.fetch(`dailyBack_${guild.id}_${user.id}`) === null){
+         background = await Canvas.loadImage('https://media.discordapp.net/attachments/492703825287839754/859817351881293844/dailycard_fuzzybrain.png');
+       } 
+       else background = await Canvas.loadImage(db.fetch(`dailyBack_${guild.id}_${user.id}`));
+       
+       
+       
+       
+        
+         ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
+         
+         
+         ctx.font = "32px Neon";
+         ctx.textAlign - "center";
+         ctx.fillStyle = '#FFFFFF';
+         ctx.textAlign = "center";
+         ctx.fillText(user.username +"#" + user.discriminator, 252,50);
+       
+         
+         ctx.font = "bold 40px Neon";
+         ctx.textAlign - "center";
+         ctx.fillStyle = '#FFFFFF';
+         ctx.fillText(`You collected \n ${amount} credits! `, 250, 115);
+       
+         ctx.font = "17px Neon";
+         ctx.textAlign - "center";
+         ctx.fillStyle = '#FFFFFF';
+         ctx.fillText(`Boosts`, 450, 30);
+       
+         const avatar = await Canvas.loadImage(user.displayAvatarURL({ format: 'jpg' }));
+         ctx.drawImage(avatar, 16, 15, 65, 65);
+       
+         if (interaction.member.roles.cache.has('734443360173162591')) {
+           const booster = await Canvas.loadImage('https://media.discordapp.net/attachments/813130416952311808/855861517512343582/booster_logo.png');
+           ctx.drawImage(booster, 420, 30, 25, 25);
+       
+           }
+           if (interaction.member.roles.cache.has('733062488358256750')) {
+             const ff = await Canvas.loadImage('https://media.discordapp.net/attachments/492703825287839754/855886270232133662/FF_badge.png');
+             ctx.drawImage(ff, 450, 32, 25, 25);
+         
+             }
+       
+           
+       
+       
+         const attachment = new Discord.MessageAttachment(canvas.toBuffer(), 'daily.png');
+       
+       
+       
+       const daily = new MessageEmbed()
+         .setDescription(`${user}, you collected your daily reward!\n Check your balance using '!profile' or '!balance'\n**Remind yourself with '!rem 24h'**`)
+         .setTitle(`${user.username} collected their daily!`)
+      // .attachFiles({ files: [attachment]} )
+         .setImage(`attachment://daily.png`) 
+         .setColor('#E400FA')
+         
+        
+       
+    
+         
+       
+         interaction.editReply({embeds: [daily], files: [attachment] })
+       
+      //tokens
+         if (token >= 10){
+           const maxToken = new MessageEmbed()
+           .setDescription('Maximum amount of tokens reached, please use them to continue collecting')
+           .setColor('RANDOM')
+           return interaction.channel.send({embeds: [maxToken] });
+         } else {
+          const addedToken = new MessageEmbed()
+          .setDescription(`You've collected ${tokenAmt} tokens! Use the !token command to see your prize!`)
+         .setColor('RANDOM')
+         interaction.channel.send({ embeds: [addedToken] });
+         }
+         db.add(`token_${guild.id}_${user.id}`, tokenAmt)
+         const wait = require('util').promisify(setTimeout);
+       
+         await wait(1000)
+
+         }
+        
+},
+};
