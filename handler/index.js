@@ -37,7 +37,7 @@ module.exports = async (client) => {
 client.on("ready", async () => {
        const guild = client.guilds.cache
        .get("646074330249429012")
-       await guild.commands.set([]).then((cmd) => {
+       await guild.commands.set(arrayOfSlashCommands).then((cmd) => {
            const getRoles = (commandName) => {
                const permissions = arrayOfSlashCommands.find(
                    x => x.name === commandName
@@ -85,7 +85,8 @@ client.on("ready", async () => {
 
     
 client.on('messageCreate', async message =>{
-        //POLLS
+
+    //POLLS
 if(message.channel.id === '845488614753304596'){
     const { content } = message
     const eachLine = content.split('\n')
@@ -96,6 +97,11 @@ if(message.channel.id === '845488614753304596'){
           message.react(emoji)
       }
     }
+/*message.startThread({
+            name: `${message.author.username}'s Poll`,
+            autoArchiveDuration: 60,
+            reason: `Poll`,
+        });*/
   };
     //XP function
         {
