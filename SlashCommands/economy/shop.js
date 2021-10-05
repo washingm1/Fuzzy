@@ -21,20 +21,34 @@ run: async (client, interaction, args, message) => {
   let user = interaction.options.getUser('youruseroption') || interaction.user
   const guild = client.guilds.cache.get("646074330249429012");
   await interaction.deferReply({ ephemeral: true });
+        
+  let cmdChannel = interaction.guild.channels.cache.get("733043770454704189")
+  let returnEmbed = new MessageEmbed()
+  .setTitle('Oops!')
+  .setDescription(`Please use ${cmdChannel} for any bot commands`)
+  if (interaction.channel !== cmdChannel) return interaction.followUp({ embeds: [returnEmbed] });
 
-
+  var showLevel =  db.fetch(`guild_${guild.id}_level_${user.id}`) || 0;
+  var showAmount =  db.fetch(`money_${guild.id}_${user.id}`)
 
   let shopHome = new MessageEmbed()
   .setTitle('Harmony House Role Shop')
-  .setDescription('**Welcome to the Harmony House Role Shop!**\n\n To navigate around, please choose the appropriate button to take you to a shop section.\n\n**NOTE:** In order to avoid backend overload, the shop will time out after 60 seconds. If you were not able to complete your purchase, feel free to run the shop command again. ')
+  .setDescription('**Welcome to the Harmony House Role Shop!**\n\n __**How To Use**__\n To navigate around, please choose the appropriate button to take you to a shop section. When you find the role you would like to buy, select the \`Buy Role\` Button, you will then be asked to confirm the purchase! \n\nIf you would like to sell an owned role, navigate to that page and select \`Sell Role\`.\n **NOTE:** You will only receive 75% back from the paid amount\n\n  \nShop will timeout automatically in Five minutes. ')
   .setColor('#CB33FF')
+  .addField('Your Level', `\`${showLevel}\``)
+  .addField('Your Balance', `\`${showAmount}\``)
   .setThumbnail(interaction.guild.iconURL({ dynamic: true }))
-  .setImage('https://media.discordapp.net/attachments/509485130847354901/850917680227024943/roleshop.png')
+  .setImage('https://media.discordapp.net/attachments/732757852615344139/894625763586883654/roleshopbanner.png')
 
 
 //MAIN MENU BUTTONS
 const roleNav = new MessageActionRow()
 .addComponents(
+  new MessageButton()
+  .setCustomId('lvl5')
+  .setLabel('Level 5 Roles')
+  .setStyle('PRIMARY')
+,
   new MessageButton()
   .setCustomId('lvl10')
   .setLabel('Level 10 Roles')
@@ -61,7 +75,7 @@ const roleNav = new MessageActionRow()
     var embeds = [ ]
     
     for(const x of guildRoles)embeds.push(new MessageEmbed()
-    .setDescription(`${x.desc}`)
+    .setDescription(`**Your Level:** \`${showLevel}\`\n\n**Your Balance:**\`${showAmount}\``)
      .setColor(x.color)
      .setTitle(`${x.role}`)
      .addField('Available At:', `Level ${x.availAt}`)
@@ -123,10 +137,10 @@ new MessageButton()
     .setLabel('Buy Role')
     .setStyle('SUCCESS')
 ,
-  new MessageButton()
+   new MessageButton()
   .setCustomId('sell')
   .setLabel('Sell Role')
-  .setStyle('DANGER')
+  .setStyle('DANGER') 
     )
 
     interaction.editReply({
@@ -137,7 +151,7 @@ new MessageButton()
 
     
     const collector = interaction.channel.createMessageComponentCollector({
-      time: 60000,
+
     });
 
 
@@ -151,25 +165,30 @@ console.log(interaction.user.id)
       const id = ButtonInteraction.customId;
 console.log(id)
 
+if (id === 'lvl5') {
+  currentPage = 0;
+  ButtonInteraction.deferUpdate()
+  interaction.editReply({embeds: [embeds[currentPage]], components: [row] })
+}
     if (id === 'lvl10') {
-        currentPage = 0;
-        ButtonInteraction.deferUpdate()
-        interaction.editReply({embeds: [embeds[currentPage]], components: [row] })
-      }
-    if (id === 'lvl20') {
         currentPage = 7;
         ButtonInteraction.deferUpdate()
         interaction.editReply({embeds: [embeds[7]], components: [row] })
       }
-    if (id === 'lvl50') {
-        currentPage = 17;
+    if (id === 'lvl20') {
+        currentPage = 13;
         ButtonInteraction.deferUpdate()
-        interaction.editReply({embeds: [embeds[17]], components: [row] })
+        interaction.editReply({embeds: [embeds[13]], components: [row] })
+      }
+    if (id === 'lvl50') {
+        currentPage = 23;
+        ButtonInteraction.deferUpdate()
+        interaction.editReply({embeds: [embeds[23]], components: [row] })
       }
       if (id === 'extras') {
-        currentPage = 24;
+        currentPage = 30;
         ButtonInteraction.deferUpdate()
-        interaction.editReply({embeds: [embeds[24]], components: [row] })
+        interaction.editReply({embeds: [embeds[30]], components: [row] })
       }
 
 
@@ -304,6 +323,8 @@ let neededLvls = roleLevel[currentPage] - level
 
 
       if (id == 'yes'){
+        collector.stop("Bought Role");
+        ButtonInteraction.deferUpdate()
 //REMEMBER TO SUBTRACT MONEY FROM USER
         db.push(user.id,`${interaction.guild.roles.cache.get(`${roleChecks[currentPage]}`)}`)
         db.subtract(`money_${guild.id}_${user.id}`, `${rolePrices[currentPage]}`)
@@ -312,7 +333,7 @@ let neededLvls = roleLevel[currentPage] - level
           //RECEIPT & CONGRATULATORY EMBEDS
         let confirmedPurchase = new MessageEmbed()
         .setTitle('Congratulations!')
-        .setDescription(`You are now the proud owner of ${guild.roles.cache.get(`${roleChecks[currentPage]}`)}, This color suits you well! A receipt has been sent to your DMs\n\nIf you would like to buy another role, or want to browse, click "Return Home".\n\n **If you are finished, please select 'Dismiss Message' at the bottom of the shop.**`)
+        .setDescription(`You are now the proud owner of ${guild.roles.cache.get(`${roleChecks[currentPage]}`)}, This color suits you well! A receipt has been sent to your DMs\n\nIf you would like to buy another role, or want to browse, please close this instance & run the \`/shop\` command again, this is done to avoid confusion in the backend.\n\n `)
         .setFooter('Thank you for shopping with the Harmony House Role Shop!')
         .setThumbnail(guild.iconURL({ dynamic: true }))
         .setTimestamp()
@@ -348,14 +369,14 @@ const returnHome = new MessageActionRow()
   .setStyle('PRIMARY')
     )
 
-         interaction.editReply({ embeds: [confirmedPurchase], components: [returnHome] })
+         interaction.editReply({ embeds: [confirmedPurchase], components: []})
         
-         interaction.user.send({ embeds: [receipt], components: [backToDayglow] })
+         return interaction.user.send({ embeds: [receipt], components: [backToDayglow] })
       }
 
       if (id == 'cancel'){
         ButtonInteraction.deferUpdate()
-         interaction.editReply({ embeds: [embeds[currentPage]], components: [row] })
+         return interaction.editReply({ embeds: [embeds[currentPage]], components: [row] })
       }
 
 
@@ -376,7 +397,7 @@ const returnHome = new MessageActionRow()
 
       let soldRole = new MessageEmbed()
       .setTitle('Success!')
-      .setDescription(`You have successfully sold ${guild.roles.cache.get(`${roleChecks[currentPage]}`)}! Added ${rolePrices[currentPage] * 0.75} credits to your balance.`)
+      .setDescription(`You have successfully sold ${guild.roles.cache.get(`${roleChecks[currentPage]}`)}! Added ${rolePrices[currentPage] * 0.75} credits to your balance. If you are still shopping, please feel free to run the \`/shop\` command again.`)
       .setTimestamp()
 
 
@@ -391,11 +412,11 @@ const returnHome = new MessageActionRow()
       .setTimestamp()
 
 
-if (id == 'sell'){
+ if (id == 'sell'){
   ButtonInteraction.deferUpdate()
    interaction.editReply({ embeds: [confirmSell], components: [options2] })
 }
-
+ 
 
       if (id == 'sellit'){
         ButtonInteraction.deferUpdate()
@@ -403,9 +424,13 @@ if (id == 'sell'){
            return interaction.editReply({ embeds: [notOwned], components: [goBack] })         
           } else
           db.add(`money_${guild.id}_${user.id}`,`${rolePrices[currentPage] * 0.75}`)
-          db.delete(user.id,`${interaction.guild.roles.cache.get(`${roleChecks[currentPage]}`)}`)
-  
-         interaction.editReply({ embeds: [soldRole], components: [goBack] })
+
+          const arr = db.fetch(user.id); // ['an', 'word', 'of', 'items']
+const filtered = arr.filter(e => e !== `${interaction.guild.roles.cache.get(`${roleChecks[currentPage]}`)}`); // excludes string 'word' from the new array
+
+db.set(user.id, filtered);
+collector.stop("Sold Role");
+         interaction.editReply({ embeds: [soldRole], components: [] })
       }
 
 
@@ -444,4 +469,4 @@ if (id == 'sell'){
   },
 };
 
-                              
+                                                     
