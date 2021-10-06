@@ -61,5 +61,6 @@ run: async (client, interaction, args, message) => {
 
     interaction.editReply('Successfully added ' + amount + ' credits to ' + `<@${target}>`)
     db.add(`money_${guild.id}_${target}`, amount)
+    db.subtract(`money_${guild.id}_${interaction.user.id}`, amount)
 },
 };
