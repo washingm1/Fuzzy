@@ -8,6 +8,7 @@ const { guildRoles } = require("../arrays/roles_array");
 module.exports = {
     name: "shop",
     description: "Buy & sell color roles!",
+ userPermissions: ["ADMINISTRATOR"],
     /**
      *
      * @param {Client} client
@@ -158,7 +159,7 @@ new MessageButton()
     let currentPage = 0;
 
 
-  collector.on('collect', (ButtonInteraction) => {
+  collector.on('collect', async (ButtonInteraction) => {
 if (ButtonInteraction.user.id !== interaction.user.id) return;
 console.log(ButtonInteraction.user.id)
 console.log(interaction.user.id)
@@ -212,7 +213,7 @@ if(id === "prev") {
         currentPage = 0;
         ButtonInteraction.deferUpdate()
         interaction.editReply({ embeds: [shopHome], components: [roleNav]})
-      }
+      };
 
 
       if(id == "next"){
@@ -227,7 +228,7 @@ if(id === "prev") {
             interaction.editReply({ embeds:  [shopHome], components: [roleNav]});
             } 
       
-          }
+          };
 
 
 
@@ -323,11 +324,14 @@ let neededLvls = roleLevel[currentPage] - level
 
 
       if (id == 'yes'){
-        collector.stop("Bought Role");
         ButtonInteraction.deferUpdate()
+        collector.stop("Bought Role");
+         const wait = require('util').promisify(setTimeout);
+
+  await wait(1000)
 //REMEMBER TO SUBTRACT MONEY FROM USER
-        db.push(user.id,`${interaction.guild.roles.cache.get(`${roleChecks[currentPage]}`)}`)
-        db.subtract(`money_${guild.id}_${user.id}`, `${rolePrices[currentPage]}`)
+        db.push(user.id,`${interaction.guild.roles.cache.get(`${roleChecks[currentPage]}`)}`);
+        db.subtract(`money_${guild.id}_${user.id}`, `${rolePrices[currentPage]}`);
 
         
           //RECEIPT & CONGRATULATORY EMBEDS
@@ -369,14 +373,16 @@ const returnHome = new MessageActionRow()
   .setStyle('PRIMARY')
     )
 
-         interaction.editReply({ embeds: [confirmedPurchase], components: []})
+          interaction.editReply({ embeds: [confirmedPurchase], components: []});
         
-         return interaction.user.send({ embeds: [receipt], components: [backToDayglow] })
-      }
+        interaction.user.send({ embeds: [receipt], components: [backToDayglow] });
+
+        return;
+      };
 
       if (id == 'cancel'){
         ButtonInteraction.deferUpdate()
-         return interaction.editReply({ embeds: [embeds[currentPage]], components: [row] })
+         return interaction.editReply({ embeds: [embeds[currentPage]], components: [row] });
       }
 
 
@@ -469,4 +475,5 @@ collector.stop("Sold Role");
   },
 };
 
+                              
                                                      
