@@ -30,6 +30,18 @@ module.exports = {
 run: async (client, interaction, args) => {
     console.log(interaction)
     await interaction.deferReply({ ephemeral: true }).catch(() => {});
+
+
+    let cmdChannel = interaction.guild.channels.cache.get("733043770454704189")
+
+    let returnEmbed = new MessageEmbed()
+    .setTitle('Oops!')
+    .setDescription(`Please use ${cmdChannel} for any bot commands`)
+
+    if (interaction.channel !== cmdChannel) return interaction.followUp({ embeds: [returnEmbed] });
+
+
+
 const [ role ] = args
 let checkInv = `${role.toString().replace('<@&', '').replace('>', '')}`
 
