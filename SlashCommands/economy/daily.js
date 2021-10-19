@@ -1,7 +1,7 @@
 const { Client, CommandInteraction } = require("discord.js");
 const Discord = require("discord.js");
 const db = require("quick.db");
-const { MessageActionRow, MessageButton } = require('discord.js');
+const { MessageActionRow, MessageButton, ButtonInteraction } = require('discord.js');
 const ms = require("ms");
 const Canvas = require('canvas');
 const { MessageEmbed } = require('discord.js');
@@ -27,8 +27,12 @@ run: async (client, interaction, args, message) => {
         const guild = client.guilds.cache.get("646074330249429012");
     
 
+        let cmdChannel = interaction.guild.channels.cache.get("733043770454704189")
+        let returnEmbed = new MessageEmbed()
+        .setTitle('Oops!')
+        .setDescription(`Please use ${cmdChannel} for any bot commands`)
 
-        if (interaction.channel.id !== '732757852615344139') return; 
+
          let amount = 0; 
          let timeout = 86400000;
        
@@ -69,7 +73,9 @@ run: async (client, interaction, args, message) => {
        
      let dailyUses = db.fetch(`dailyUse_${guild.id}_${user.id}`)
 
-  
+  if(dailyUses === 100){
+    interaction.followUp({ content: `You have used the daily command 100 times and have earned the \`100 Daily Uses\` Badge!` })
+  }
 
         const { registerFont, createCanvas } = require('canvas')
         registerFont('./font/Neon.ttf', { family: 'Neon' }) 
@@ -79,10 +85,9 @@ run: async (client, interaction, args, message) => {
        
          let background = []
          
-         if (db.fetch(`dailyBack_${guild.id}_${user.id}`) === null){
-         background = await Canvas.loadImage('https://media.discordapp.net/attachments/492703825287839754/859817351881293844/dailycard_fuzzybrain.png');
-       } 
-       else background = await Canvas.loadImage(db.fetch(`dailyBack_${guild.id}_${user.id}`));
+         background = await Canvas.loadImage('https://media.discordapp.net/attachments/732757852615344139/895077078012149780/newDailyCard.png');
+       
+
        
        
        
@@ -103,15 +108,15 @@ run: async (client, interaction, args, message) => {
          ctx.fillStyle = '#FFFFFF';
          ctx.fillText(`You collected \n ${amount} credits! `, 250, 115);
        
-         ctx.font = "17px Neon";
+/*          ctx.font = "17px Neon";
          ctx.textAlign - "center";
          ctx.fillStyle = '#FFFFFF';
          ctx.fillText(`Boosts`, 450, 30);
-       
+        */
          const avatar = await Canvas.loadImage(user.displayAvatarURL({ format: 'jpg' }));
-         ctx.drawImage(avatar, 16, 15, 65, 65);
+         ctx.drawImage(avatar, 10, 8, 80, 80);
        
-         if (interaction.member.roles.cache.has('734443360173162591')) {
+/*          if (interaction.member.roles.cache.has('734443360173162591')) {
            const booster = await Canvas.loadImage('https://media.discordapp.net/attachments/813130416952311808/855861517512343582/booster_logo.png');
            ctx.drawImage(booster, 420, 30, 25, 25);
        
@@ -122,7 +127,7 @@ run: async (client, interaction, args, message) => {
          
              }
        
-           
+            */
        
        
          const attachment = new Discord.MessageAttachment(canvas.toBuffer(), 'daily.png');
@@ -130,37 +135,87 @@ run: async (client, interaction, args, message) => {
        
        
        const daily = new MessageEmbed()
-         .setDescription(`${user}, you collected your daily reward!\n Check your balance using '!profile' or '!balance'\n**Remind yourself with '!rem 24h'**`)
+         .setDescription(`${user}, you collected your daily reward!\n Check your balance using \`/points\` or \`/balance\`\n\n**Remind yourself by clicking the button below!**`)
          .setTitle(`${user.username} collected their daily!`)
       // .attachFiles({ files: [attachment]} )
          .setImage(`attachment://daily.png`) 
          .setColor('#E400FA')
+         .setAuthor(`${interaction.user.username}`, interaction.user.displayAvatarURL({ dynamic: true }))
          
-        
+
+         let reminder = new MessageActionRow()
+         .addComponents(
+             new MessageButton()
+             .setLabel('Set Reminder')
+             .setStyle('PRIMARY')
+             .setCustomId('remind')
+             .setEmoji("⏰"),
+         )
+
+
+         interaction.editReply({embeds: [daily], files: [attachment], components: [reminder] })
        
+
+
+         const collector = interaction.channel.createMessageComponentCollector({
+          time: 90000,
+        });
     
-         
-       
-         interaction.editReply({embeds: [daily], files: [attachment] })
-       
-      //tokens
-         if (token >= 10){
-           const maxToken = new MessageEmbed()
-           .setDescription('Maximum amount of tokens reached, please use them to continue collecting')
-           .setColor('RANDOM')
-           return interaction.channel.send({embeds: [maxToken] });
-         } else {
-          const addedToken = new MessageEmbed()
-          .setDescription(`You've collected ${tokenAmt} tokens! Use the !token command to see your prize!`)
-         .setColor('RANDOM')
-         interaction.channel.send({ embeds: [addedToken] });
-         }
-         db.add(`token_${guild.id}_${user.id}`, tokenAmt)
-         const wait = require('util').promisify(setTimeout);
-       
-         await wait(1000)
+        collector.on('collect', (ButtonInteraction) => {
+          if (ButtonInteraction.user.id !== interaction.user.id) return;
+          console.log(ButtonInteraction.user.id)
+          console.log(interaction.user.id)
+                const id = ButtonInteraction.customId;
+          console.log(id)
+
+
+          if (id === 'remind') {
+            ButtonInteraction.deferUpdate()
+            db.set(`remind_${user.id}`,Date.now() + ms('24h'))
+            
+            const reminderSet = new MessageEmbed()
+            .setTitle('Success!')
+            .setDescription(`${ButtonInteraction.user.username}, You will be reminded in \`24 Hours\` for your Daily Credits!`)
+            interaction.followUp({  embeds: [reminderSet], files: [], components: [] })
+
+          }
+          const interval = setInterval(function() {
+            
+            const reminderEmbed = new MessageEmbed()
+                .setTitle('You are being reminded!')
+                .setDescription(`You are being reminded for your Daily commands`)
+                .setFooter(`You set a reminder for \`24h\``)
+                .setAuthor(`${client.user.username}`, client.user.displayAvatarURL({ dynamic: true }))
+                .setColor('RANDOM')
+    
+                if(Date.now() > db.fetch(`remind_${user.id}`)){
+                    db.delete(`remind_${user.id}`)
+                   ButtonInteraction.user.send({ embeds: [reminderEmbed] })
+                    .catch(e => console.log(e))
+                    clearInterval(interval)
+                }
+            
+            },1000)
+         })
+//tokens
+if (token >= 10){
+  const maxToken = new MessageEmbed()
+  .setDescription('Maximum amount of tokens reached, please use them to continue collecting')
+  .setColor('RANDOM')
+  return interaction.channel.send({embeds: [maxToken] });
+} else {
+ const addedToken = new MessageEmbed()
+ .setDescription(`You've collected ${tokenAmt} tokens! Use the \`/token\` command to see your prize!`)
+.setColor('RANDOM')
+interaction.channel.send({ embeds: [addedToken] });
+}
+db.add(`token_${guild.id}_${user.id}`, tokenAmt)
+const wait = require('util').promisify(setTimeout);
+
+await wait(1000)
 
          }
-        
+              
+     
 },
 };
