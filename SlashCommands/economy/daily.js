@@ -2,11 +2,11 @@ const { Client, CommandInteraction } = require("discord.js");
 const Discord = require("discord.js");
 const db = require("quick.db");
 const { MessageActionRow, MessageButton, ButtonInteraction } = require('discord.js');
-const ms = require("ms");
+const ms = require("parse-ms");
 const Canvas = require('canvas');
 const { MessageEmbed } = require('discord.js');
-
-
+const toMilliseconds = require('to-milliseconds');
+const now = new Date();
 module.exports = {
     name: "daily",
     description: "Earn credits every 24 hours",
@@ -32,7 +32,8 @@ run: async (client, interaction, args, message) => {
         .setTitle('Oops!')
         .setDescription(`Please use ${cmdChannel} for any bot commands`)
 
-
+        if (interaction.channel !== cmdChannel) return interaction.followUp({ embeds: [returnEmbed] });
+        
          let amount = 0; 
          let timeout = 86400000;
        
@@ -58,10 +59,16 @@ run: async (client, interaction, args, message) => {
        
          if (daily !== null && timeout - (Date.now() - daily) > 0) {
            let time = ms(timeout - (Date.now() - daily));
+
+           const timeInMs = toMilliseconds.convert(time)
+   
+           const totalTime = now.valueOf() + timeInMs;
+          var printTime = totalTime.toString().slice(0,10)
+
          
            const timeEmbed = new MessageEmbed()
            .setColor("#FFFFFF")
-           .setDescription(`:no_entry_sign: You've already collected your daily reward\n\nCollect it again in ${time.hours}h ${time.minutes}m ${time.seconds}s `);
+           .setDescription(`:no_entry_sign: You've already collected your daily reward\n\nCollect it again <t:${printTime}:R> `);
            interaction.editReply({ embeds: [timeEmbed] } )
          } else {
            
@@ -157,11 +164,11 @@ run: async (client, interaction, args, message) => {
        
 
 
-         const collector = interaction.channel.createMessageComponentCollector({
+         const DailyCollector = interaction.channel.createMessageComponentCollector({
           time: 90000,
         });
     
-        collector.on('collect', (ButtonInteraction) => {
+        DailyCollector.on('collect', (ButtonInteraction) => {
           if (ButtonInteraction.user.id !== interaction.user.id) return;
           console.log(ButtonInteraction.user.id)
           console.log(interaction.user.id)
@@ -178,9 +185,7 @@ run: async (client, interaction, args, message) => {
             .setDescription(`${ButtonInteraction.user.username}, You will be reminded in \`24 Hours\` for your Daily Credits!`)
             interaction.followUp({  embeds: [reminderSet], files: [], components: [] })
 
-          }
-          const interval = setInterval(function() {
-            
+                    
             const reminderEmbed = new MessageEmbed()
                 .setTitle('You are being reminded!')
                 .setDescription(`You are being reminded for your Daily commands`)
@@ -194,9 +199,12 @@ run: async (client, interaction, args, message) => {
                     .catch(e => console.log(e))
                     clearInterval(interval)
                 }
+          }
+
+    
             
-            },1000)
-         })
+            })
+        
 //tokens
 if (token >= 10){
   const maxToken = new MessageEmbed()
